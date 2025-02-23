@@ -20,4 +20,6 @@ dependencies = [
     "scipy>=1.15.2",
     "python-dateutil>=2.9.0.post0",
     "pandas>=2.2.3",
+    "dash-table>=5.0.0",
+    "uuid>=1.30",
 ]
