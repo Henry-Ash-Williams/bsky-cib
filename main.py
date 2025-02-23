@@ -1,6 +1,6 @@
 import dash
 import dash_cytoscape as cyto
-from dash import Output, Input, html, dcc
+from dash import Output, Input, State, html, dcc
 import networkx as nx
 from dotenv import dotenv_values 
 from atproto import AsyncClient 
@@ -88,40 +88,65 @@ async def make_data(tag, limit, k):
 def main():
     app = dash.Dash(__name__)
     k = 5  # Initial slider value
+    
 
     # Create the event loop and fetch initial graph data synchronously
     loop = asyncio.get_event_loop()
     G, elements = loop.run_until_complete(make_data("#germany", 10, k))
 
     app.layout = html.Div([
-        dcc.Slider(min=1, max=200, id='degree-slider', value=k),
-        cyto.Cytoscape(
-            id="graph",
-            elements=elements,
-            style={"width": "100%", "height": "600px"},
-            layout={"name": "cose", "nodeRepulsion": 1000000, "idealEdgeLength": 200},  # Force-directed layout
-            stylesheet=[
-                {
-                    "selector": "node",
-                    "style": {
-                        "width": "data(size)",
-                        "height": "data(size)",
-                        "background-color": "#007bff",
-                        "label": "data(label)",
-                        "text-valign": "center",
-                        "color": "black",
-                        "font-size": "10px"
-                    }
-                },
-                {
-                    "selector": "edge",
-                    "style": {
-                        "width": 2,
-                        "line-color": "#aaa"
-                    }
-                },
-            ]
-        )
+        html.Div([
+            dcc.Input(id='tag-input', type='text', placeholder='Enter tag(s)', style={"width": "50%", "padding": "10px"}),
+
+            # Date range picker
+            dcc.DatePickerRange(
+                id='date-picker-range',
+                start_date_placeholder_text="Start Date",
+                end_date_placeholder_text="End Date",
+                calendar_orientation='horizontal',
+                style={"width": "30%", "padding": "10px"}
+            ),
+
+            
+            # Submit button
+            html.Button('Submit', id='submit-button', n_clicks=0),
+            html.Br(), html.Br(),
+            
+            # Output container
+            html.Div(id='output-div')
+
+            ]),
+
+        html.Div([
+            dcc.Slider(min=1, max=200, id='degree-slider', value=k),
+            cyto.Cytoscape(
+                id="graph",
+                elements=elements,
+                style={"width": "100%", "height": "600px"},
+                layout={"name": "cose", "nodeRepulsion": 1000000, "idealEdgeLength": 200},  # Force-directed layout
+                stylesheet=[
+                    {
+                        "selector": "node",
+                        "style": {
+                            "width": "data(size)",
+                            "height": "data(size)",
+                            "background-color": "#007bff",
+                            "label": "data(label)",
+                            "text-valign": "center",
+                            "color": "black",
+                            "font-size": "10px"
+                        }
+                    },
+                    {
+                        "selector": "edge",
+                        "style": {
+                            "width": 2,
+                            "line-color": "#aaa"
+                        }
+                    },
+                ]
+            )
+        ])
     ])
 
     # Callback to highlight connected nodes when a node is tapped
@@ -180,15 +205,38 @@ def main():
     # Synchronous wrapper for async function in callback
     @app.callback(
         Output("graph", "elements"), 
-        Input("degree-slider", "value")
+        Input("degree-slider", "value"),
+        Input("submit-button", "n_clicks"),
+        State("tag-input", "value"),
+        State("date-picker-range", "start_date"),
+        State("date-picker-range", "end_date"),
     )
-    def update_graph(k):
+    def update_graph(k, n_clicks, tag, start_date, end_date):
         """Update graph elements when the slider value changes."""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)  # Set the new loop for this callback thread
-        G, elements = loop.run_until_complete(make_data("#germany", 10, k))
+        G, elements = loop.run_until_complete(make_data(tag, 10, k))
         loop.close()  # Close the loop when done
         return elements
+
+    # Callback to update graph when the submit button is clicked
+    # @app.callback(
+    #     # Output("graph", "elements"),
+    #     Input("submit-button", "n_clicks"),
+    #     State("tag-input", "value"),
+    #     State("date-picker-range", "start_date"),
+    #     State("date-picker-range", "end_date"),
+    #     State("degree-slider", "value"),
+    # )
+    # def new_graph(n_clicks, tag, start_date, end_date, k):
+    #     print("New graph")
+    #     print(n_clicks)
+    #     loop = asyncio.new_event_loop()
+    #     asyncio.set_event_loop(loop)
+    #     G, elements = loop.run_until_complete(make_data(tag, 10, k))
+    #     loop.close()
+    #     return elements
+
 
     app.run_server(debug=True)
 
