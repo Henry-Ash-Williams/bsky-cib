@@ -19,4 +19,5 @@ dependencies = [
     "pyvis>=0.3.2",
     "scipy>=1.15.2",
     "python-dateutil>=2.9.0.post0",
+    "pandas>=2.2.3",
 ]
