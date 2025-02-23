@@ -2,7 +2,7 @@
 
 Developed by [@Henry-Ash-Williams](https://github.com/Henry-Ash-Williams) & [@Speaty](https://github.com/Speaty) for the Hacksussex 2025 Hackathon, as part of the CASM Technology track, "Clear skies ahead". 
 
-#![bsky cib app](TODO)
+#![bsky cib app](https://raw.githubusercontent.com/Henry-Ash-Williams/bsky-cib/refs/heads/master/assets/app.png)
 
 
 ## Getting Started 
